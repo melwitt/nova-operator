@@ -480,7 +480,7 @@ func (r *NovaAPIReconciler) generateConfigs(
 		"MemcachedServers":         memcachedInstance.GetMemcachedServerListString(),
 		"MemcachedServersWithInet": memcachedInstance.GetMemcachedServerListWithInetString(),
 		"MemcachedTLS":             memcachedInstance.GetMemcachedTLSSupport(),
-		"nova_endpoint_id":         r.getEndpointID(ctx, h, instance),
+		"nova_endpoint_id":         r.getEndpointID(ctx, h, instance.Namespace),
 	}
 	// create httpd  vhost template parameters
 	httpdVhostConfig := map[string]interface{}{}
@@ -985,16 +985,4 @@ func (r *NovaAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.memcachedNamespaceMapFunc),
 		).
 		Complete(r)
-}
-
-// getEndpointID - returns the endpointID associated with the Nova keystone Endpoint
-func (r *NovaAPIReconciler) getEndpointID(ctx context.Context, h *helper.Helper, instance *novav1.NovaAPI) string {
-	Log := r.GetLogger(ctx)
-
-	endpoint, err := keystonev1.GetKeystoneEndpointWithName(ctx, h, novaapi.ServiceName, instance.Namespace)
-	if err != nil {
-		Log.Error(err, "Failed to retreive the Nova service endpoint ID")
-		return ""
-	}
-	return endpoint.Status.EndpointIDs[string(service.EndpointPublic)]
 }
